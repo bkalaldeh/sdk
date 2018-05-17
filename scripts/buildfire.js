@@ -1755,21 +1755,85 @@ var buildfire = {
         }
     }
     , localStorage : {
-        setItem: function(key,value,callback) {
-            if(!callback)callback = function(){};
+        setItem: function(optionsOrKey, keyOrValue, valueOrCallback, callbackWithOptions) {
+            var args = typeof optionsOrKey === "object" ?
+                { options : optionsOrKey, key: keyOrValue, value : valueOrCallback, callback : callbackWithOptions } :
+                { options : { shared: true }, key: optionsOrKey, value : keyOrValue, callback : valueOrCallback }; // default to shared if no options provided
 
-            if(typeof(value) == "object" )
-                value = JSON.stringify(value);
+            if(!args.callback)args.callback = function(){};
+            if(typeof(args.value) === "object" )
+                args.value = JSON.stringify(args.value);
+            if(args.options.shared) {
+                // use shared storage
+                buildfire._sendPacket(new Packet(null, 'localStorage.setItem', {key:args.key, value:args.value}), args.callback);
+            } else {
+                // use window storage
+                buildfire.getContext(function (err, context) {
+                    if (err) {
+                        console.error(err);
+                        args.callback("error getting context", false);
+                        return;
+                    }
+                    else if(!context || !context.instanceId) {
+                        args.callback("no context instance id", false);
+                        return;
+                    }
+                    window.localStorage.setItem(context.instanceId + "_" + args.key, args.value);
+                    args.callback(null, true);
+                });
+            }
+        }
+        ,getItem: function(optionsOrKey, keyOrCallback, callbackWithOptions) {
+            var args = typeof optionsOrKey === "object" ?
+                { options : optionsOrKey, key: keyOrCallback, callback : callbackWithOptions } :
+                { options : { shared: true }, key: optionsOrKey, callback : keyOrCallback }; // default to shared if no options provided
 
-            buildfire._sendPacket(new Packet(null, 'localStorage.setItem', {key:key,value:value}), callback);
+            if(!args.callback)throw "missing callback on buildfire.localStorage.getItem";
+            if(args.options.shared) {
+                // use shared storage
+                buildfire._sendPacket(new Packet(null, 'localStorage.getItem', args.key), args.callback);
+            } else {
+                // use window storage
+                buildfire.getContext(function (err, context) {
+                    if (err) {
+                        console.error(err);
+                        args.callback("error getting context", false);
+                        return;
+                    }
+                    else if(!context || !context.instanceId) {
+                        args.callback("no context instance id", false);
+                        return;
+                    }
+                    var value = window.localStorage.getItem(context.instanceId + "_" + args.key);
+                    args.callback(null, value);
+                });
+            }
         }
-        ,getItem: function(key,callback) {
-            if(!callback)throw "missing callback on buildfire.localStorage.getItem";
-            buildfire._sendPacket(new Packet(null, 'localStorage.getItem', key), callback);
-        }
-        ,removeItem: function(key,callback) {
-            if(!callback)throw "missing callback on buildfire.localStorage.removeItem";
-            buildfire._sendPacket(new Packet(null, 'localStorage.removeItem', key), callback);
+        ,removeItem: function(optionsOrKey, keyOrCallback, callbackWithOptions) {
+            var args = typeof optionsOrKey === "object" ?
+                { options : optionsOrKey, key: keyOrCallback, callback : callbackWithOptions } :
+                { options : { shared: true }, key: optionsOrKey, callback : keyOrCallback }; // default to shared if no options provided
+
+            if(!args.callback)throw "missing callback on buildfire.localStorage.removeItem";
+            if(args.options.shared) {
+                // use shared storage
+                buildfire._sendPacket(new Packet(null, 'localStorage.removeItem', args.key), args.callback);
+            } else {
+                // use window storage
+                buildfire.getContext(function (err, context) {
+                    if (err) {
+                        console.error(err);
+                        args.callback("error getting context", false);
+                        return;
+                    }
+                    else if(!context || !context.instanceId) {
+                        args.callback("no context instance id", false);
+                        return;
+                    }
+                    window.localStorage.removeItem(context.instanceId + "_" + args.key);
+                    callback(null, true);
+                });
+            }
         }
     }
 
