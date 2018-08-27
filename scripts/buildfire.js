@@ -508,6 +508,7 @@ var buildfire = {
             html.setAttribute('browser', browserName);
             html.setAttribute('majorVersion', majorVersion);
             html.setAttribute('fullVersion', fullVersion);
+            html.setAttribute('frame-type', buildfire.getFrameType());
 
         }
         , getCSSFiles: function (callback) {
@@ -1908,6 +1909,8 @@ var buildfire = {
     }
 
 };
+
+buildfire.fid = buildfire.parseQueryString().fid;
 buildfire.init();
 
 
@@ -1966,8 +1969,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 	}, 1750);
 
 });
-
-buildfire.fid = buildfire.parseQueryString().fid;
 
 
 document.addEventListener("resize", function (event) {
