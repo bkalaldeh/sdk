@@ -263,16 +263,25 @@ var buildfire = {
     }
 
     , getContext: function (callback) {
-        if (buildfire._context)
-            callback(null, buildfire._context);
-        else {
-            var p = new Packet(null, 'getContext');
-            buildfire._sendPacket(p, function (err, data) {
-                if (data)
-                    buildfire._context = data;
-                if(callback)callback(err, data);
-            });
+
+        if (buildfire._context) {
+            if(callback)callback(null, buildfire._context);
         }
+        else {
+            if(window.parsedQuerystring.appcontext) {
+                buildfire._context = JSON.parse(window.parsedQuerystring.appcontext);
+                if(callback)callback(null, buildfire._context);
+            } else {
+                if(!callback) throw 'Context not ready. Use callback parameter instead of direct return';
+                let p = new Packet(null, 'getContext');
+                buildfire._sendPacket(p, function (err, data) {
+                    if (data)
+                        buildfire._context = data;
+                    if(callback)callback(err, data);
+                });
+            }
+        }
+        return buildfire._context;
     }
     /// ref: https://github.com/BuildFire/sdk/wiki/How-to-use-Navigation
     , navigation: {
@@ -2285,6 +2294,8 @@ var buildfire = {
 
 };
 
+window.parsedQuerystring = buildfire.parseQueryString();
+buildfire.fid = window.parsedQuerystring.fid;
 buildfire.init();
 
 buildfire.eventManager.add('deviceAppBackgrounded', function () {
@@ -2313,7 +2324,6 @@ buildfire.eventManager.add('deviceAppBackgrounded', function () {
     stopVideos(iframes, videos);
 
 }, true);
-
 
 document.addEventListener("DOMContentLoaded", function (event) {
     //buildfire.appearance.autosizeContainer();
@@ -2370,9 +2380,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 	}, 1750);
 
 });
-
-buildfire.fid = buildfire.parseQueryString().fid;
-
 
 document.addEventListener("resize", function (event) {
     buildfire.appearance.autosizeContainer();
