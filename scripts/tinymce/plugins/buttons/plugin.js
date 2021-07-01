@@ -13,7 +13,7 @@ tinymce.PluginManager.add("buttons", function (editor, url) {
                 title: "Buttons",
                 url: url + "/dialog.html" +  queryString,
                 width: 600,
-                height: 400,
+                height: 350,
                 buttons: [
                     {
                         text: 'Cancel',
@@ -38,7 +38,7 @@ tinymce.PluginManager.add("buttons", function (editor, url) {
                                             if (err) return console.error(err);
                                             if (!actionItem) return;
                                             let stringifiedActionItem = escape(JSON.stringify(actionItem));
-                                            let content = `<a class="${result.type === 'button' ? 'btn btn-' + result.buttonStyle : 'text-' + result.buttonStyle}" data-execute="${stringifiedActionItem}"
+                                            let content = `<a class="${result.type === 'button' ? 'btn bf-btn-' + result.buttonStyle : 'bf-text-' + result.buttonStyle}" data-execute="${stringifiedActionItem}"
                                             onclick="buildfire.actionItems.execute(JSON.parse(unescape('${stringifiedActionItem}')), ()=>{})">${actionItem.title}</a>&nbsp;`
                                             editor.insertContent(content);
                                         }
